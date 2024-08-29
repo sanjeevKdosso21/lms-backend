@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { Admin } from '../models/adminModel';
+import {Admin} from '../models/adminModel'
 
 const secretKey = `${process.env.SECRET_KEY}` // Replace with your secret key
 
@@ -10,7 +10,7 @@ interface TokenPayload {
   exp?: number;
 }
 
-export const authenticateToken = async (req: Request, res: Response, next: NextFunction) => {
+export const adminAuthmiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers['authorization'];
 //   const token = authHeader && authHeader.split(' ')[1]; this is middle ware
 
@@ -22,7 +22,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
 
  
   if(!tokenCheck){
-    return res.status(400).send({message : 'user logout please go to login page', status : false, tokenCheck, token})
+    return res.status(400).send({message : 'admin logout please go to login page', status : false, tokenCheck, token})
   }
 
   jwt.verify(token, secretKey, async (err, user) => {
@@ -36,7 +36,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
     //console.log('id is gettng here',user);
 
     if (!id) {
-      return res.status(403).send({message : 'forbidde user is not found'}); // Forbidden if no user ID in token
+      return res.status(403).send({message : 'forbidde Admin is not found'}); // Forbidden if no user ID in token
     }
 
     //check if user id exist in database and user is activated 
@@ -49,10 +49,11 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
       });
   
       if (!student) {
-        return res.status(403).send({message  : "user is not activated please contact to admin"}); // Forbidden if user not found or not active
+        return res.status(403).send({message  : "Admin is not activated please contact to admin"}); // Forbidden if user not found or not active
       }
      
-    req.body.userId = id;
+    req.body.userId = id; // Attach user ID to request object for use in routes
+    //console.log('inside middleware ',req.body.userId)
     next();
   });
 };
