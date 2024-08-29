@@ -34,7 +34,7 @@ export const uploadCourseVideo = async (req: Request, res: Response) => {
       }
 
       try {
-        const { courseId, topicId, title } = req.body;
+        const { courseId, topicId, title ,description} = req.body;
         console.log("Request Body:", title);
         console.log("Uploaded File:",);
     
@@ -102,7 +102,9 @@ export const uploadCourseVideo = async (req: Request, res: Response) => {
           let data = {
             title: req.body.title,
             filePath: `/uploads/videos/${req.file.filename}`,
-            courseId: req.body.courseId
+            courseId: req.body.courseId,
+            topicId: topicId,
+            description : description
           }
           const course = await VideoModel.create(data);
           return res.status(404).json({ message: "video uploaded" });
@@ -115,7 +117,8 @@ export const uploadCourseVideo = async (req: Request, res: Response) => {
 
         // Update the course video field with the new file path
         await VideoModel.update(
-          { filePath: `/uploads/videos/${req.file.filename}` },
+          { filePath: `/uploads/videos/${req.file.filename}`, title : title,
+            description : description },
           { where: { courseId: courseId, isDeleted: false } }
         );
 
@@ -317,18 +320,64 @@ export const uploadCoursePdf = async (req: Request, res: Response) => {
       }
 
       try {
-        const { courseId, title } = req.body;
+        const { courseId, title,topicId,description } = req.body;
         console.log("Request Body:", title);
         console.log("Uploaded File:",);
-
-
-        if (!courseId) {
-          return res.status(400).json({ message: "Course ID is required" });
-        }
 
         if (!req.file) {
           return res.status(400).json({ message: "No file uploaded" });
         }
+
+        if (!courseId) {
+          //if course id not found remove uploaded course pdf
+          if(req.file?.filename){
+            const oldVideoFilePath = `/uploads/videos/${req.file.filename}`
+            ? path.resolve("uploads/videos", path.basename(`/uploads/videos/${req.file.filename}`))
+            : null;
+            if(oldVideoFilePath)  unlinkFile(oldVideoFilePath);
+          }
+          return res.status(400).json({ message: "Course ID is required" });
+        }
+
+        if (!topicId) {
+          //if topic id not found remove uploaded pdf file
+          if(req.file?.filename){
+            const oldVideoFilePath = `/uploads/videos/${req.file.filename}`
+            ? path.resolve("uploads/videos", path.basename(`/uploads/videos/${req.file.filename}`))
+            : null;
+            if(oldVideoFilePath)  unlinkFile(oldVideoFilePath);
+          }
+          return res.status(400).json({ message: "topic Id required" });
+        }
+
+        //if course id is comming chat it is exist  in database 
+        if(courseId){
+          const isCourseIdValid = await CourseTable.findOne({ 
+            where: { id: courseId }
+          });
+          if(!isCourseIdValid){
+            const oldVideoFilePath = `/uploads/videos/${req.file.filename}`
+            ? path.resolve("uploads/videos", path.basename(`/uploads/videos/${req.file.filename}`))
+            : null;
+            if(oldVideoFilePath)  unlinkFile(oldVideoFilePath);
+          return res.status(400).json({ message: "course id invalid" });
+          }
+        }
+
+
+        if(topicId){
+          const isTopicIdValid = await TopicTable.findOne({ 
+            where: { id: courseId }
+          });
+          if(!isTopicIdValid){
+            const oldVideoFilePath = `/uploads/videos/${req.file.filename}`
+            ? path.resolve("uploads/videos", path.basename(`/uploads/videos/${req.file.filename}`))
+            : null;
+            if(oldVideoFilePath)  unlinkFile(oldVideoFilePath);
+          return res.status(400).json({ message: "course id invalid" });
+          }
+        }
+       
 
         // Fetch the course record by ID
         const course = await PdfModel.findOne({
@@ -340,7 +389,9 @@ export const uploadCoursePdf = async (req: Request, res: Response) => {
           let data = {
             title: req.body.title,
             filePath: `/uploads/pdfFiles/${req.file.filename}`,
-            courseId: req.body.courseId
+            courseId: req.body.courseId,
+            topicId : topicId,
+            description: description
           }
           const course = await PdfModel.create(data);
           return res.status(404).json({ message: "pdf uploaded", course });
@@ -353,7 +404,7 @@ export const uploadCoursePdf = async (req: Request, res: Response) => {
 
         // Update the course video field with the new file path
         await PdfModel.update(
-          { filePath: `/uploads/pdfFiles/${req.file.filename}` },
+          { filePath: `/uploads/pdfFiles/${req.file.filename}`, title,description },
           { where: { courseId: courseId, isDeleted: false } }
         );
 

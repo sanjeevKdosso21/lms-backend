@@ -6,6 +6,8 @@ class PdfModel extends Model {
   public id!: number;
   public title!: string;
   public filePath!: string;
+  public topicId!: string;
+  public description!: string;
   public courseId!: string;
   public isDeleted!: string;
 }
@@ -18,6 +20,14 @@ PdfModel.init(
       primaryKey: true,
     },
     title: {
+      type: new DataTypes.STRING(128),
+      allowNull: false,
+    },
+    description: {
+      type: new DataTypes.STRING(250),
+      allowNull: false,
+    },
+    topicId: {
       type: new DataTypes.STRING(128),
       allowNull: false,
     },

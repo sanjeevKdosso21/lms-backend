@@ -66,7 +66,7 @@ Admin.init(
     }
 );
 
-sequelize.sync({ alter: false }).then(() => {
+sequelize.sync({ alter: true }).then(() => {
     console.log('Admin table created.');
 });
 

@@ -113,7 +113,3 @@ export const CounsellorauthenticateToken = async (req: Request, res: Response, n
     next();
   });
 };
-
-
-
-
